@@ -1,0 +1,52 @@
+# Training configuration for U-Net model
+
+model:
+  type: "unet"
+  n_channels: 3
+  n_classes: 1
+  bilinear: true
+
+training:
+  epochs: 100
+  batch_size: 16
+  learning_rate: 0.0001
+  weight_decay: 0.00001
+  early_stopping_patience: 10
+  
+  # Data augmentation
+  augmentation:
+    horizontal_flip: 0.5
+    vertical_flip: 0.5
+    rotation: 15
+    brightness_contrast: 0.3
+  
+  # Optimizer
+  optimizer:
+    type: "adam"
+    betas: [0.9, 0.999]
+  
+  # Learning rate scheduler
+  scheduler:
+    type: "reduce_on_plateau"
+    mode: "min"
+    factor: 0.5
+    patience: 5
+
+data:
+  train_dir: "data/processed/train"
+  val_dir: "data/processed/val"
+  test_dir: "data/processed/test"
+  image_size: [512, 512]
+  
+  # Normalization (ImageNet stats)
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+
+mlflow:
+  experiment_name: "crack_detection_unet"
+  tracking_uri: "http://localhost:5000"
+  
+inference:
+  confidence_threshold: 0.5
+  min_detection_area: 100
+  device: "cuda"
