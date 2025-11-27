@@ -1,0 +1,44 @@
+# YOLOv8 data configuration
+
+# Dataset paths
+path: /home/runner/work/AI/AI/data  # Dataset root dir
+train: processed/train/images  # Train images (relative to 'path')
+val: processed/val/images  # Val images (relative to 'path')
+test: processed/test/images  # Test images (optional)
+
+# Classes
+nc: 1  # Number of classes
+names:
+  0: crack  # Class names
+
+# Training hyperparameters
+batch: 16
+imgsz: 640
+epochs: 100
+patience: 10
+
+# Optimization
+optimizer: Adam
+lr0: 0.001
+lrf: 0.01
+momentum: 0.937
+weight_decay: 0.0005
+
+# Augmentation
+hsv_h: 0.015
+hsv_s: 0.7
+hsv_v: 0.4
+degrees: 15.0
+translate: 0.1
+scale: 0.5
+shear: 0.0
+perspective: 0.0
+flipud: 0.5
+fliplr: 0.5
+mosaic: 1.0
+mixup: 0.0
+
+# Inference
+conf: 0.25  # Confidence threshold
+iou: 0.45  # NMS IoU threshold
+max_det: 300  # Maximum detections per image
