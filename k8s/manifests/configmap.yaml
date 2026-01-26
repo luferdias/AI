@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ingestion-agent-config
+  namespace: default
+data:
+  TILE_SIZE: "256"
+  TILE_OVERLAP: "0"
+  NORMALIZE: "true"
+  APPLY_AUGMENTATION: "false"
+  MAX_PARALLEL_DOWNLOADS: "5"
+  MAX_RETRIES: "3"
+  RETRY_BACKOFF_FACTOR: "2.0"
+  LOG_LEVEL: "INFO"
+  PROMETHEUS_PORT: "8000"
+  AWS_REGION: "us-east-1"
+  S3_BUCKET: "drone-images"
+  DVC_REMOTE: "storage"
+  DVC_DATA_PATH: "data/tiles"
+  TEMP_DIR: "/tmp/ingestion"
+  OUTPUT_DIR: "/app/data/tiles"
