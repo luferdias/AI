@@ -15,7 +15,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from sklearn.utils import shuffle
 from tensorflow.keras.layers import Concatenate, Dense, Embedding, Flatten, Input
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import SGD
@@ -69,12 +68,11 @@ def train_model(
     batch_size: int,
     val_split: float,
 ) -> tuple[tf.keras.callbacks.History, float, tuple[np.ndarray, ...]]:
-    user_ids, book_ids, ratings = shuffle(
-        data["new_user_id"].to_numpy(),
-        data["new_book_id"].to_numpy(),
-        data["Notas"].to_numpy(),
-        random_state=42,
-    )
+    rng = np.random.default_rng(42)
+    indices = rng.permutation(len(data))
+    user_ids = data["new_user_id"].to_numpy(dtype=np.int32)[indices]
+    book_ids = data["new_book_id"].to_numpy(dtype=np.int32)[indices]
+    ratings = data["Notas"].to_numpy(dtype=np.float32)[indices]
 
     train_size = int((1 - val_split) * len(ratings))
     train_user = user_ids[:train_size]
@@ -119,6 +117,7 @@ def recommend_for_user(
     user_id: int,
     avg_rating: float,
     top_n: int,
+    predict_batch_size: int,
 ) -> pd.DataFrame:
     user_rows = data.loc[data["ID_usuario"] == user_id]
     if user_rows.empty:
@@ -127,14 +126,28 @@ def recommend_for_user(
     user_code = int(user_rows["new_user_id"].iloc[0])
 
     books_unique = data[["new_book_id", "Titulo", "ISBN"]].drop_duplicates()
-    book_ids = books_unique["new_book_id"].to_numpy()
-    user_array = np.full_like(book_ids, user_code)
+    rated_books = set(user_rows["new_book_id"].unique())
+    book_ids = books_unique["new_book_id"].to_numpy(dtype=np.int32)
+    candidate_mask = ~np.isin(book_ids, list(rated_books))
+    candidate_book_ids = book_ids[candidate_mask]
+    candidate_books = books_unique.loc[candidate_mask].reset_index(drop=True)
 
-    preds = model.predict([user_array, book_ids], verbose=0).reshape(-1)
-    preds = preds + avg_rating
+    if len(candidate_book_ids) == 0:
+        raise ValueError("Usuário já avaliou todos os livros disponíveis.")
 
-    books_unique = books_unique.assign(score=preds)
-    top_recs = books_unique.sort_values("score", ascending=False).head(top_n)
+    preds_parts: list[np.ndarray] = []
+    for start in range(0, len(candidate_book_ids), predict_batch_size):
+        batch_ids = candidate_book_ids[start : start + predict_batch_size]
+        user_array = np.full(batch_ids.shape, user_code, dtype=np.int32)
+        batch_preds = model.predict([user_array, batch_ids], verbose=0).reshape(-1)
+        preds_parts.append(batch_preds)
+
+    preds = np.concatenate(preds_parts) + avg_rating
+    top_k = min(top_n, len(preds))
+    top_indices = np.argpartition(-preds, top_k - 1)[:top_k]
+    top_indices = top_indices[np.argsort(-preds[top_indices])]
+
+    top_recs = candidate_books.iloc[top_indices].assign(score=preds[top_indices])
     return top_recs[["ISBN", "Titulo", "score"]].rename(columns={"score": "Score"})
 
 
@@ -148,6 +161,12 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=1024, help="Tamanho do batch")
     parser.add_argument("--val-split", type=float, default=0.2, help="Percentual de validação")
     parser.add_argument("--plot", default="loss.png", help="Arquivo de saída do gráfico")
+    parser.add_argument(
+        "--predict-batch-size",
+        type=int,
+        default=4096,
+        help="Tamanho do batch para predições",
+    )
 
     args = parser.parse_args()
 
@@ -171,6 +190,7 @@ def main() -> None:
         user_id=args.user_id,
         avg_rating=avg_rating,
         top_n=args.top_n,
+        predict_batch_size=args.predict_batch_size,
     )
 
     print("\nTop recomendações:")
