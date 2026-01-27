@@ -3,7 +3,7 @@ Repositório de IA em Python com PyTorch/TensorFlow, Scikit-learn e XGBoost. Imp
 
 ## Recomendação de livros com embeddings
 
-O script `src/recomendacao_livros.py` lê o arquivo `Base_livros.csv`, cria índices para usuários e livros, treina um modelo de recomendação com embeddings (user/item + dot product + camada de saída) e gera recomendações Top-N para um `ID_usuario` específico. Ele também salva o gráfico de `loss` por época em `loss.png`.
+O script `src/recomendacao_livros.py` lê o arquivo `Base_livros.csv`, cria índices para usuários e livros, treina um modelo de recomendação com embeddings (usuário/livro + concatenação + camada densa) e gera recomendações Top-N para um `ID_usuario` específico. Ele centraliza as notas pela média do treino, treina com SGD e salva o gráfico de `loss` por época em `loss.png`.
 
 ### Dependências
 
@@ -14,7 +14,7 @@ pip install pandas numpy scikit-learn tensorflow matplotlib
 ### Execução
 
 ```bash
-python src/recomendacao_livros.py --user-id 276725 --top-n 5 --epochs 10
+python src/recomendacao_livros.py --user-id 276729 --top-n 5 --epochs 15
 ```
 
 ### Interpretação do gráfico de loss
@@ -26,7 +26,7 @@ python src/recomendacao_livros.py --user-id 276725 --top-n 5 --epochs 10
 
 ### Exemplo de recomendação (ilustrativo)
 
-Para o usuário `276725`, o script retorna títulos com **maior score predito** (dot product + camada linear). Exemplo de saída (ilustrativa):
+Para o usuário `276729`, o script retorna títulos com **maior score predito** (embeddings concatenados + camada densa). Exemplo de saída (ilustrativa):
 
 1. **Clara Callan** — maior score, indicando alta afinidade com o perfil do usuário.
 2. **Decision in Normandy** — score levemente menor, mas ainda acima da média.
