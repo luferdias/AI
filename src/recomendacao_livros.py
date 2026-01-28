@@ -156,7 +156,7 @@ def main() -> None:
     parser.add_argument("--csv", default="Base_livros.csv", help="Caminho para o CSV")
     parser.add_argument("--user-id", type=int, required=True, help="ID_usuario para recomendar")
     parser.add_argument("--top-n", type=int, default=5, help="Quantidade de recomendações")
-    parser.add_argument("--epochs", type=int, default=15, help="Número de épocas")
+    parser.add_argument("--epochs", type=int, default=25, help="Número de épocas")
     parser.add_argument("--embedding-dim", type=int, default=10, help="Dimensão do embedding")
     parser.add_argument("--batch-size", type=int, default=1024, help="Tamanho do batch")
     parser.add_argument("--val-split", type=float, default=0.2, help="Percentual de validação")
