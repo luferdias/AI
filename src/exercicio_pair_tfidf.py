@@ -10,6 +10,7 @@ Passos:
 
 from __future__ import annotations
 
+import argparse
 from pathlib import Path
 from typing import Dict
 
@@ -46,7 +47,12 @@ def _roc_auc_from_scores(y_true: np.ndarray, scores: np.ndarray) -> float:
     return roc_auc_score(y_true, scores, multi_class="ovr", average="weighted")
 
 
-def evaluate_models(df: pd.DataFrame) -> Dict[str, float]:
+def evaluate_models(
+    df: pd.DataFrame,
+    *,
+    test_size: float = 0.3,
+    random_state: int = 42,
+) -> Dict[str, float]:
     if not {"abstract", "label"}.issubset(df.columns):
         raise ValueError("O dataset deve conter as colunas 'abstract' e 'label'.")
 
@@ -59,16 +65,20 @@ def evaluate_models(df: pd.DataFrame) -> Dict[str, float]:
     X_train, X_test, y_train, y_test = train_test_split(
         X,
         y,
-        test_size=0.3,
-        random_state=42,
+        test_size=test_size,
+        random_state=random_state,
         stratify=y,
     )
 
     models = {
-        "Decision Tree": DecisionTreeClassifier(random_state=42),
-        "Random Forest": RandomForestClassifier(n_estimators=300, random_state=42, n_jobs=-1),
-        "Linear SVM": LinearSVC(random_state=42),
-        "Logistic Regression": LogisticRegression(max_iter=2000, random_state=42),
+        "Decision Tree": DecisionTreeClassifier(random_state=random_state),
+        "Random Forest": RandomForestClassifier(
+            n_estimators=300,
+            random_state=random_state,
+            n_jobs=-1,
+        ),
+        "Linear SVM": LinearSVC(random_state=random_state),
+        "Logistic Regression": LogisticRegression(max_iter=2000, random_state=random_state),
     }
 
     results: Dict[str, float] = {}
@@ -99,9 +109,22 @@ def evaluate_models(df: pd.DataFrame) -> Dict[str, float]:
 
 
 def main() -> None:
-    download_dataset_if_needed(DATA_FILE)
-    df = pd.read_csv(DATA_FILE)
-    results = evaluate_models(df)
+    parser = argparse.ArgumentParser(
+        description="Classificação de abstracts com TF-IDF e comparação por ROC-AUC.",
+    )
+    parser.add_argument(
+        "--data-file",
+        type=Path,
+        default=DATA_FILE,
+        help="Arquivo local do dataset pair.csv",
+    )
+    parser.add_argument("--test-size", type=float, default=0.3, help="Fração de teste")
+    parser.add_argument("--random-state", type=int, default=42, help="Seed aleatória")
+    args = parser.parse_args()
+
+    download_dataset_if_needed(args.data_file)
+    df = pd.read_csv(args.data_file)
+    results = evaluate_models(df, test_size=args.test_size, random_state=args.random_state)
 
     print("\nROC-AUC por classificador:")
     for name, auc in sorted(results.items(), key=lambda x: x[1], reverse=True):
