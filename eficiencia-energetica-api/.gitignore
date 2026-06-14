@@ -1,0 +1,22 @@
+# Ambiente
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Testes / cobertura
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDEs
+.vscode/
+.idea/
+
+# Sistema
+.DS_Store
+
+# Observação: o modelo treinado (api/ml/modelo_knn.joblib) É versionado
+# de propósito, para que a API rode sem necessidade de treino prévio.
+# Para regerá-lo: python ml/treinar_modelo.py (a partir da pasta api/).

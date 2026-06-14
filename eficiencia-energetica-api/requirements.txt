@@ -1,0 +1,20 @@
+# --- Execução da API ---
+fastapi[standard]>=0.115
+python-dotenv>=1.0
+pydantic>=2.7
+
+# --- Serviço de IA 1: classificação (KNN) ---
+scikit-learn>=1.5
+joblib>=1.4
+numpy>=1.26
+
+# --- Autenticação JWT ---
+pyjwt>=2.9
+pwdlib[argon2]>=0.2
+
+# --- Serviço de IA 2: LLM (opcional; há fallback por regra se ausente) ---
+groq>=0.11
+
+# --- Testes ---
+pytest>=8.0
+httpx>=0.27
