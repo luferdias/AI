@@ -30,6 +30,8 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 
 DATA_URL = "https://raw.githubusercontent.com/watinha/nlp-text-mining-datasets/main/slr.csv"
 DATA_FILE = Path("slr.csv")
+EPOCHS = 10
+MAX_TOKENS = 200
 
 
 def download_dataset_if_needed(file_path: Path = DATA_FILE) -> None:
@@ -103,11 +105,9 @@ def build_model(vocab_size: int, max_tokens: int) -> Sequential:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Treinamento/teste de classificador LSTM no dataset SLR.")
     parser.add_argument("--data-file", type=Path, default=DATA_FILE, help="Arquivo local slr.csv")
-    parser.add_argument("--epochs", type=int, default=10, help="Número de épocas (padrão: 10)")
     parser.add_argument("--batch-size", type=int, default=32, help="Tamanho do batch")
     parser.add_argument("--test-size", type=float, default=0.2, help="Fração de teste")
     parser.add_argument("--random-state", type=int, default=42, help="Seed aleatória")
-    parser.add_argument("--max-tokens", type=int, default=200, help="Tamanho máximo da sequência")
     parser.add_argument("--max-words", type=int, default=50000, help="Máximo de palavras no vocabulário")
     args = parser.parse_args()
 
@@ -128,12 +128,12 @@ def main() -> None:
     X_train_pad, X_test_pad, vocab_size = prepare_sequences(
         X_train,
         X_test,
-        max_tokens=args.max_tokens,
+        max_tokens=MAX_TOKENS,
         max_words=args.max_words,
     )
 
-    model = build_model(vocab_size=vocab_size, max_tokens=args.max_tokens)
-    model.fit(X_train_pad, y_train, epochs=args.epochs, batch_size=args.batch_size, verbose=2)
+    model = build_model(vocab_size=vocab_size, max_tokens=MAX_TOKENS)
+    model.fit(X_train_pad, y_train, epochs=EPOCHS, batch_size=args.batch_size, verbose=2)
 
     y_proba = model.predict(X_test_pad, verbose=0).reshape(-1)
     y_pred = (y_proba >= 0.5).astype(int)
